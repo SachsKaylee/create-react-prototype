@@ -1,0 +1,36 @@
+{
+  "name": "create-react-prototype",
+  "version": "1.0.0",
+  "description": "A CLI similar to create-react-app, just for simple & small libraries.",
+  "main": "index.js",
+  "bin": {
+    "create-react-prototype": "./index.js"
+  },
+  "contributors": [
+    {
+      "name": "Patrick Sachs",
+      "email": "kontakt@patrick-sachs.de",
+      "url": "https://patrick-sachs.de/"
+    }
+  ],
+  "author": "Patrick Sachs",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/cli": "^7.0.0-rc.1",
+    "@babel/core": "^7.0.0-rc.1",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-rc.1",
+    "@babel/plugin-transform-object-assign": "^7.0.0-rc.1",
+    "@babel/plugin-transform-runtime": "^7.0.0-rc.1",
+    "@babel/preset-env": "^7.0.0-rc.1",
+    "@babel/preset-react": "^7.0.0-rc.1",
+    "@babel/runtime": "^7.0.0-rc.1",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-plugin-transform-react-constant-elements": "^6.23.0",
+    "commander": "^2.17.1",
+    "cross-env": "^5.2.0",
+    "cross-spawn": "^6.0.5",
+    "fs-extra": "^7.0.0",
+    "jest": "^23.5.0",
+    "vorpal": "^1.12.0"
+  }
+}
