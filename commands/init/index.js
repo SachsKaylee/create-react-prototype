@@ -1,8 +1,9 @@
 const fs = require("fs-extra");
 const path = require("path");
-//onst wait = require("../../helper/wait");
-const scaffolding = require("./scaffolding");
 const run = require("../../helper/run");
+const paths = require("../../helper/paths");
+const format = require("../../helper/format-unicorn");
+const getLicense = require("./get-license");
 
 const bootstrap = (app) => {
   app
@@ -11,14 +12,15 @@ const bootstrap = (app) => {
       const dir = process.cwd();
       try {
         //await fs.emptyDir(dir);
-        console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...")
+        console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
+        console.log("📚 Tip: Fill it out properly, we'll read it and assume you entered correct data!");
         await npmInit();
 
-        console.log("📚 Nice! Now we'll shove some of our configuration into your package.json ...")
+        console.log("📚 Nice! Now we'll shove some of our configuration into your package.json ...");
         await adjustPackageJson();
 
-        console.log("📚 We will now set up your project with some default files ...")
-        await scaffolding.copyScaffolding();
+        console.log("📚 We will now set up your project with some default files ...");
+        await copyScaffolding();
 
         console.log("✨ Created a new React library in '" + dir + "' -- Happy coding!")
       } catch (e) {
@@ -35,9 +37,8 @@ const npmInit = async () => {
 };
 
 const adjustPackageJson = async () => {
-  const cwd = process.cwd();
-  const packageJsonPath = path.join(cwd, "./package.json");
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
+  const packageJsonPath = path.join(paths.getProjectFolder(), "./package.json");
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
 
   // Update the JSON
   packageJson["scripts"] = {
@@ -49,9 +50,48 @@ const adjustPackageJson = async () => {
   packageJson["generator"] = "create-react-prototype";
   packageJson["main"] = "./src/index.js";
 
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-  return Promise.resolve();
+  await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
 };
+
+const getFileArgs = async () => {
+  const packageJsonPath = path.join(paths.getProjectFolder(), "./package.json");
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+  const year = new Date().getFullYear();
+  const { description, name, version, license, author: fullname } = packageJson;
+
+  return {
+    description, name, version, year, license, fullname
+  };
+}
+
+const copyScaffolding = async () => {
+  const args = await getFileArgs();
+  await createLicense(args);
+  await copyFile("./README.md", args);
+  await copyFile("./CHANGELOG.md", args);
+};
+
+const createLicense = async (args) => {
+  let licenseText;
+  try {
+    licenseText = await getLicense(args.license);
+  } catch {
+    console.log("Could not get license text for license '" + args.license + "'. Make sure to manually update your LICENSE file!");
+    licenseText = (await fs.readFile(path.join(__dirname, "./LICENSE"))).toString();
+  }
+  licenseText = format(licenseText, args);
+  console.log("Created:", "./LICENSE");
+  await fs.writeFile(path.join(paths.getProjectFolder(), "./LICENSE"), licenseText);
+};
+
+const copyFile = async (file, args) => {
+  const filePath = path.join(__dirname, file);
+  const contents = (await fs.readFile(filePath)).toString();
+  const formatted = format(contents, args);
+  const srcFilePath = path.join(paths.getProjectFolder(), file);
+  console.log("Created:", file);
+  await fs.writeFile(srcFilePath, formatted);
+}
 
 module.exports = {
   bootstrap
