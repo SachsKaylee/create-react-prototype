@@ -20,6 +20,11 @@ const bootstrap = (app) => {
       process.env.NODE_ENV = "production";
       process.env.BABEL_ENV = "es";
       await runBuild();
+      
+      console.log("📚 Copying files ...");
+      process.env.NODE_ENV = "production";
+      process.env.BABEL_ENV = "commonjs";
+      await copyPackageJson();
 
       console.log("✨ Success! Your library has been compiled. You can find the output in the /dist directory.");
 
@@ -66,18 +71,38 @@ const prependLicense = async (to, { name, version, license }) => {
  */
 `;
   await prepend(to, text);
-}
+};
 
 const readPackageJson = async () => {
   const cwd = process.cwd();
   const pathJson = path.join(cwd, "./package.json");
   return JSON.parse(await fs.readFile(pathJson));
-}
+};
 
 const prepend = async (file, string) => {
   const data = await fs.readFile(file, 'utf8');
   await fs.writeFile(file, string + data, 'utf8');
-}
+};
+
+const copyTypescript = async () => {
+
+};
+
+const copyPackageJson = async () => {
+  const { scripts, devDependencies, ...packageJson } = await readPackageJson();
+  const newPackageJson = {
+    ...packageJson,
+    main: "./index.js",
+    module: "./es/index.js",
+    private: false
+  };
+  const distPath = path.join(paths.getDistFolder(), "./package.json");
+
+  await fs.writeFile(distPath, JSON.stringify(packageJson, null, 2), "utf8");
+  console.log(`Created package.json`);
+
+  return newPackageJson;
+};
 
 const copyFile = async (file) => {
   const cwd = process.cwd();
@@ -85,7 +110,7 @@ const copyFile = async (file) => {
   const srcPath = path.join(cwd, file);
   await fs.copy(srcPath, distPath);
   console.log(`Copied ${file}`);
-}
+};
 
 module.exports = {
   bootstrap,
