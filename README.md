@@ -8,7 +8,7 @@ Create React libraries with no build configuration.
 * Having dozens of files just containing intructions on *how to compile* your library always seems seems overkill, when all you want is to simply **compile your ES6 React code to IE11 ES5**.
 * Having tons of files unrelated to the library code itself **distracts from its true purpose**.
 
-create-react-prototype intends to fix these issues by providing **a zero configuration** out of the box solutions for writing react libraries. There **won't be a single file related to your build process**, etc. in your project.
+create-react-prototype intends to fix these issues by providing **a zero configuration** out of the box solutions for writing react libraries. There **won't be a single file related to your build process**, etc. in your library.
 
 ## Quick Start
 
@@ -22,7 +22,7 @@ Create a new directory for your libaray:
 
 ```
 $ mkdir my-library
-$ cd my-project
+$ cd my-library
 ```
 
 And initalize the project:

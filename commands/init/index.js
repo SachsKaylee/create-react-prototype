@@ -59,6 +59,7 @@ const adjustPackageJson = async () => {
   // Update the JSON
   packageJson["scripts"] = {
     "build": "create-react-prototype build && npm run test",
+    "watch": "concurrently --kill-others \"create-react-prototype watch\" \"npm run test\"",
     "test": "create-react-prototype test",
     "release": "npm run build && create-react-prototype release",
     "pack": "npm run build && create-react-prototype pack"
@@ -71,6 +72,7 @@ const adjustPackageJson = async () => {
   };;
   packageJson["devDependencies"] = {
     ...(packageJson["devDependencies"] || {}),
+    "concurrently": "^3.6.1",
     "create-react-prototype": "^" + myPackageJson.version
   };
 
@@ -93,10 +95,10 @@ const copyScaffolding = async () => {
   await createLicense(args);
   await copyFile("./README.md", args);
   await copyFile("./CHANGELOG.md", args);
-  await copyExample();
+  await copyExample(args);
 };
 
-const copyExample = async () => {
+const copyExample = async (args) => {
   if (!await fs.exists(path.join(paths.getProjectFolder(), "./example"))) {
     console.log("./example directory already exists, not copying examples.");
   } else {

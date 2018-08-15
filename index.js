@@ -8,6 +8,7 @@ process.on('unhandledRejection', err => {
 const vorpal = require("vorpal");
 const initCommand = require("./commands/init");
 const buildCommand = require("./commands/build");
+const watchCommand = require("./commands/watch");
 const testCommand = require("./commands/test");
 const releaseCommand = require("./commands/release");
 const packCommand = require("./commands/pack");
@@ -17,6 +18,7 @@ const app = vorpal();
 
 initCommand.bootstrap(app);
 buildCommand.bootstrap(app);
+watchCommand.bootstrap(app);
 testCommand.bootstrap(app);
 releaseCommand.bootstrap(app);
 packCommand.bootstrap(app);
