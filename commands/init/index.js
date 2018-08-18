@@ -9,6 +9,7 @@ const myPackageJson = require("../../package.json");
 const bootstrap = (app) => {
   app
     .command("init", "Creates a new react library")
+    .option("--noDependency", "Does not add create-react-prototype as a dev dependency.")
     .action(async (args, callback) => {
       const dir = process.cwd();
       //try {
@@ -18,7 +19,7 @@ const bootstrap = (app) => {
       await npmInit();
 
       console.log("📚 Nice! Now we'll shove some of our configuration into your package.json ...");
-      await adjustPackageJson();
+      await adjustPackageJson(args.options);
 
       console.log("📚 We will now set up your project with some default files ...");
       await copyScaffolding();
@@ -44,7 +45,11 @@ const npmInit = async () => {
 
 const install = async () => {
   await run('npm', ["install"]);
-  await run('npm', ["install"], { stdio: "inherit", cwd: path.join(paths.getProjectFolder(), "./example") });
+  const exampleDir = path.join(paths.getProjectFolder(), "./example");
+  if (!await fs.exists(exampleDir)) {
+    await fs.mkdir(exampleDir);
+  }
+  await run('npm', ["install"], { stdio: "inherit", cwd: exampleDir });
 };
 
 /*const createExample = async () => {
@@ -52,7 +57,7 @@ const install = async () => {
   return await run(craPath, ["example"]);
 };*/
 
-const adjustPackageJson = async () => {
+const adjustPackageJson = async (options = {}) => {
   const packageJsonPath = path.join(paths.getProjectFolder(), "./package.json");
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
 
@@ -73,7 +78,7 @@ const adjustPackageJson = async () => {
   packageJson["devDependencies"] = {
     ...(packageJson["devDependencies"] || {}),
     "concurrently": "^3.6.1",
-    "create-react-prototype": "^" + myPackageJson.version
+    ...(options.noDependency ? {} : { "create-react-prototype": "^" + myPackageJson.version })
   };
 
   await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
