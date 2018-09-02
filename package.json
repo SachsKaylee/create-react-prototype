@@ -27,11 +27,9 @@
     "@babel/runtime": "^7.0.0-rc.1",
     "babel-core": "^7.0.0-bridge.0",
     "babel-plugin-transform-react-constant-elements": "^6.23.0",
-    "create-react-app": "^1.5.2",
     "cross-spawn": "^6.0.5",
     "fs-extra": "^7.0.0",
     "jest": "^23.5.0",
-    "vorpal": "^1.12.0",
-    "webpack-serve": "^2.0.2"
+    "vorpal": "^1.12.0"
   }
 }
