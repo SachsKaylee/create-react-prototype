@@ -82,7 +82,6 @@ const adjustPackageJson = async (options = {}) => {
 
   // Update the JSON
   packageJson.scripts = packageJson.scripts || {};
-  // todo: get rid of 5000 scripts - we want one script for 1 command, with one call in each - we don't need concurrently, build the features into the commands.
   packageJson.scripts["build"] = "create-react-prototype build";
   packageJson.scripts["watch"] = "create-react-prototype watch";
   packageJson.scripts["test"] = "create-react-prototype test";
@@ -95,7 +94,6 @@ const adjustPackageJson = async (options = {}) => {
   packageJson.dependencies["@babel/runtime"] = packageJson.dependencies["@babel/runtime"] || "^7.0.0-rc.1";
 
   packageJson.devDependencies = packageJson.devDependencies || {};
-  packageJson.devDependencies["concurrently"] = packageJson.devDependencies["concurrently"] || "^3.6.1";
   packageJson.devDependencies["create-react-prototype"] = myDependency;
 
   await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
