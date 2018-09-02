@@ -1,5 +1,10 @@
 const path = require("path");
 
+const getMyFolder = () => {
+  const my = path.resolve(__dirname, "../");
+  return my;
+};
+
 const getProjectFolder = () => {
   const project = process.cwd();
   return project;
@@ -13,14 +18,18 @@ const getSourceFolder = () => {
 
 const getDistFolder = () => {
   const cwd = process.cwd();
-  const dist = process.env.BABEL_ENV === "commonjs"
-    ? path.join(cwd, "./dist")
-    : path.join(cwd, "./dist/", process.env.BABEL_ENV);
-  return dist;
+  return path.join(cwd, "./dist");
+};
+
+getExampleFolder = () => {
+  return path.join(getProjectFolder(), "./example");
 };
 
 module.exports = {
+  getMyFolder,
+
   getProjectFolder,
   getSourceFolder,
-  getDistFolder
+  getDistFolder,
+  getExampleFolder
 };
