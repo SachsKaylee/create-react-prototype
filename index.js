@@ -12,7 +12,6 @@ const watchCommand = require("./commands/watch");
 const testCommand = require("./commands/test");
 const releaseCommand = require("./commands/release");
 const packCommand = require("./commands/pack");
-const aboutCommand = require("./commands/about");
 
 const app = vorpal();
 
@@ -22,7 +21,6 @@ watchCommand.bootstrap(app);
 testCommand.bootstrap(app);
 releaseCommand.bootstrap(app);
 packCommand.bootstrap(app);
-aboutCommand.bootstrap(app);
 
 app
   .delimiter("create-react-prototype$")
