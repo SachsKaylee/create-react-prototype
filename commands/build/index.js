@@ -3,30 +3,17 @@ const run = require("../../helper/run");
 const flatten = require("../../helper/flatten");
 const prune = require("../../helper/prune");
 const path = require("path");
+const babel = require("@babel/core");
 const fs = require("fs-extra");
 
 const bootstrap = (app) => {
   app
     .command("build", "Builds your library, ready for distribution.")
     .action(async (args, callback) => {
+      process.env.NODE_ENV = process.env.NODE_ENV || "production";
 
-      console.log("📚 Cleaning previous build output ...");
-      await cleanPreviousBuildOutput();
-
-      console.log("📚 Building the CommonJS modules ...");
-      process.env.NODE_ENV = "production";
-      process.env.BABEL_ENV = "commonjs";
-      await runBuild();
-
-      console.log("📚 Building the ES modules ...");
-      process.env.NODE_ENV = "production";
-      process.env.BABEL_ENV = "es";
-      await runBuild();
-      
-      console.log("📚 Copying files ...");
-      process.env.NODE_ENV = "production";
-      process.env.BABEL_ENV = "commonjs";
-      await createPackageJson();
+      console.log("📚 Building your library ...");
+      await runFullBuild();
 
       console.log("✨ Success! Your library has been compiled. You can find the output in the /dist directory.");
 
@@ -41,24 +28,29 @@ const cleanPreviousBuildOutput = async () => {
   console.log("Cleaned:", dist);
 }
 
-const runBuild = async (watch = false) => {
-  const cfgFile = path.join(__dirname, "./babel.config.js");
-  const babelLocation = path.join(__dirname, "../../node_modules/.bin/babel");
-  console.log("Source Path:", paths.getSourceFolder());
-  await run(babelLocation, flatten(prune([
-    paths.getSourceFolder(),
-    watch && "--watch",
-    ["--out-dir", paths.getDistFolder()],
-    ["--ignore", "*.test.js"],
-    ["--config-file", cfgFile]
-  ])));
+const runFullBuild = async () => {
+  console.log("📚 Cleaning previous build output ...");
+  await cleanPreviousBuildOutput();
+
+  // todo: maybe remove es output
+
+  console.log("📚 Building modules ...");
+  await runSingleBuild();
+
+  console.log("📚 Copying files ...");
+  await createPackageJson();
+};
+
+const runSingleBuild = async () => {
+  console.log("Compiling source path:", paths.getSourceFolder());
+  await compile();
 
   const packageJson = await readPackageJson();
-  console.log("Adding license information:", packageJson.name + " (v" + packageJson.version + ") is licensed under the " + packageJson.license + " License");
+  console.log("Adding license information:", packageJson.name + " (v" + packageJson.version + "), " + packageJson.license + " License");
   const indexJsPath = path.join(paths.getDistFolder(), "./index.js");
   await prependLicense(indexJsPath, packageJson);
 
-  console.log("Copying relevant files to build output");
+  console.log("Copying README.md, CHANGELOG.md & LICENSE files to build output");
   await Promise.all([
     copyFile("./README.md"),
     copyFile("./CHANGELOG.md"),
@@ -116,9 +108,103 @@ const copyFile = async (file) => {
   console.log(`Copied ${file}`);
 };
 
+const shouldCompileFile = (name, stat) => {
+  if (!name.endsWith(".js")) {
+    return false;
+  }
+  if (name.endsWith(".test.js")) {
+    return false;
+  }
+  return true;
+};
+
+const shouldCompileDirectory = (name, stat) => {
+  return true;
+};
+
+const options = () => {
+  const options = {
+    cwd: process.cwd(),
+    code: true,
+    plugins: prune([
+      require("@babel/plugin-proposal-object-rest-spread"),
+      require("@babel/plugin-transform-object-assign"),
+      [require("@babel/plugin-transform-runtime"), { helpers: true, useESModules: false }],
+      process.env.NODE_ENV === "production" && require("babel-plugin-transform-react-constant-elements")
+    ]),
+    presets: prune([
+      require("@babel/preset-react"),
+      [require("@babel/preset-env"), {
+        targets: {
+          ie: 11,
+          edge: 14,
+          firefox: 45,
+          chrome: 49,
+          safari: 10,
+          node: '6.11',
+        },
+        modules: "commonjs",
+      }]
+    ])
+  };
+  return options;
+};
+
+const compile = async () => {
+  await compileDirectory(paths.getSourceFolder(), paths.getDistFolder(), options());
+};
+
+const compileDirectory = async (from, to, options) => {
+  const dir = await fs.readdir(from);
+  await fs.ensureDir(to);
+  await Promise.all(dir.map(async item => {
+    const fullFromItem = path.resolve(from, item);
+    const fullToItem = path.resolve(to, item);
+    const stat = await fs.stat(fullFromItem);
+    // todo: Make compatible with symlinks! (Symlinks can also be files)
+    if (stat.isDirectory() && shouldCompileDirectory(fullFromItem, stat)) {
+      await compileDirectory(fullFromItem, fullToItem, options);
+    } else if (stat.isFile() && shouldCompileFile(fullFromItem, stat)) {
+      await compileFile(fullFromItem, fullToItem, options);
+    }
+  }));
+};
+fs.pat
+const compileFile = async (from, to, options) => {
+  options = {
+    filename: from,
+    // todo: This option exists according to the documention, but throws an option of actually used.
+    /*caller: {
+      name: "create-react-prototype"
+    },*/
+    ...options
+  };
+  await fs.ensureDir(path.dirname(to));
+  const { code, map, ast } = await babel.transformFileAsync(from, options);
+  console.log("Compiled:", from);
+  // todo: Run these three in parallel
+  if (code) {
+    await fs.writeFile(to, code);
+    if (await fs.exists(from + ".d.ts")) {
+      await fs.copy(from + ".d.ts", to + ".d.ts");
+    }
+  }
+  if (map) {
+    await fs.writeFile(to + ".map", map);
+  }
+  if (ast) {
+    await fs.writeFile(to + ".ast.json", JSON.stringify(ast, null, 2));
+  }
+};
+
 module.exports = {
   bootstrap,
-  runBuild,
   cleanPreviousBuildOutput,
-  createPackageJson
+  createPackageJson,
+  runFullBuild,
+
+  compile,
+  compileFile,
+  compileDirectory,
+  options
 };
