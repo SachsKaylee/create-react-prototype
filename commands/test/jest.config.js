@@ -3,7 +3,7 @@ const path = require("path");
 
 const modulePaths = [
   path.join(paths.getProjectFolder(), "./node_modules"),
-  path.join(__dirname, "../../node_modules")
+  path.join(paths.getMyFolder(), "./node_modules")
 ];
 
 module.exports = {
@@ -14,10 +14,11 @@ module.exports = {
   transform: {
     "^.+\\.js$": path.join(__dirname, "./jest.transform.js")
   },
-  //moduleDirectories: modulePaths,
+  moduleDirectories: modulePaths,
   modulePaths: modulePaths,
   moduleFileExtensions: ["js", "jsx"],
-  rootDir: paths.getSourceFolder(),
+  rootDir: paths.getProjectFolder(),
+  roots: [paths.getProjectFolder()],
   testURL: "http://localhost",
   setupFiles: [
     path.join(__dirname, "./jest.setup.js")

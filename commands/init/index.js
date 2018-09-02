@@ -9,11 +9,13 @@ const myPackageJson = require("../../package.json");
 const bootstrap = (app) => {
   app
     .command("init", "Creates a new react library")
-    .option("--noDependency", "Does not add create-react-prototype as a dev dependency.")
+    .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add this library as a depenendcy.")
     .action(async (args, callback) => {
       const dir = process.cwd();
-      //try {
-      //await fs.emptyDir(dir);
+      
+      // Set default options
+      args.options.dependency = args.options.dependency || "npm";
+
       console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
       console.log("📚 Tip: Fill it out properly, we'll read it and assume you entered correct data!");
       await npmInit();
@@ -24,17 +26,10 @@ const bootstrap = (app) => {
       console.log("📚 We will now set up your project with some default files ...");
       await copyScaffolding();
 
-      /*console.log("📚 Creating your example project ...");
-      await createExample();*/
       console.log("📚 Installing ...");
       await install();
 
       console.log("✨ Created a new React library in '" + dir + "' -- Happy coding!")
-      /* } catch (e) {
-         app.log("Error", e.name);
-         app.log("Message", e.message);
-         app.log("Stack", e.stack);
-       }*/
       callback();
     });
 };
@@ -61,25 +56,47 @@ const adjustPackageJson = async (options = {}) => {
   const packageJsonPath = path.join(paths.getProjectFolder(), "./package.json");
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
 
+  let myDependency;
+  switch (options.dependency) {
+    case "npm": {
+      myDependency = "^" + myPackageJson.version;
+      break;
+    }
+    case "local": {
+      const filePath = path.relative(paths.getProjectFolder(), paths.getMyFolder());
+      myDependency = "file:" + filePath;
+      break;
+    }
+    case "none": {
+      myDependency = undefined;
+      break;
+    }
+    case "retain": {
+      myDependency = packageJson.devDependencies && packageJson.devDependencies["create-react-prototype"];
+      break;
+    }
+    default: {
+      throw new Error(`Unknown dependency mode '${options.dependency}'.`);
+    }
+  }
+
   // Update the JSON
-  packageJson["scripts"] = {
-    "build": "create-react-prototype build && npm run test",
-    "watch": "concurrently --kill-others \"create-react-prototype watch\" \"npm run test\"",
-    "test": "create-react-prototype test",
-    "release": "npm run build && create-react-prototype release",
-    "pack": "npm run build && create-react-prototype pack"
-  };
-  packageJson["generator"] = "create-react-prototype";
-  packageJson["main"] = "./src/index.js";
-  packageJson["dependencies"] = {
-    ...(packageJson["dependencies"] || {}),
-    "@babel/runtime": "^7.0.0-rc.1"
-  };;
-  packageJson["devDependencies"] = {
-    ...(packageJson["devDependencies"] || {}),
-    "concurrently": "^3.6.1",
-    ...(options.noDependency ? {} : { "create-react-prototype": "^" + myPackageJson.version })
-  };
+  packageJson.scripts = packageJson.scripts || {};
+  // todo: get rid of 5000 scripts - we want one script for 1 command, with one call in each - we don't need concurrently, build the features into the commands.
+  packageJson.scripts["build"] = "create-react-prototype build";
+  packageJson.scripts["watch"] = "create-react-prototype watch";
+  packageJson.scripts["test"] = "create-react-prototype test";
+  packageJson.scripts["release"] = "create-react-prototype release";
+  packageJson.scripts["pack"] = "create-react-prototype pack";
+  packageJson.generator = "create-react-prototype";
+  packageJson.main = "./src/index.js";
+
+  packageJson.dependencies = packageJson.dependencies || {};
+  packageJson.dependencies["@babel/runtime"] = packageJson.dependencies["@babel/runtime"] || "^7.0.0-rc.1";
+
+  packageJson.devDependencies = packageJson.devDependencies || {};
+  packageJson.devDependencies["concurrently"] = packageJson.devDependencies["concurrently"] || "^3.6.1";
+  packageJson.devDependencies["create-react-prototype"] = myDependency;
 
   await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
 };
@@ -101,13 +118,16 @@ const copyScaffolding = async () => {
   await copyFile("./README.md", args);
   await copyFile("./CHANGELOG.md", args);
   await copyExample(args);
+
+  // todo: .gitignore
 };
 
 const copyExample = async (args) => {
-  if (!await fs.exists(path.join(paths.getProjectFolder(), "./example"))) {
-    console.log("./example directory already exists, not copying examples.");
+  if (await fs.exists(paths.getExampleFolder())) {
+    console.log("Example directory already exists, not copying examples.");
   } else {
-    await copyDirectory("./example", args);
+    const exampleRelativePath = path.relative(paths.getProjectFolder(), paths.getExampleFolder());
+    await copyDirectory(exampleRelativePath, args);
   }
 }
 
