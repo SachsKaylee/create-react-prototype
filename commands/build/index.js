@@ -88,7 +88,6 @@ const createPackageJson = async (canPublish = true) => {
   const newPackageJson = {
     ...packageJson,
     main: "./index.js",
-    module: "./es/index.js",
     private: canPublish ? false : true,
     generator: "create-react-prototype"
   };
