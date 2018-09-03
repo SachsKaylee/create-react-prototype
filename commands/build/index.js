@@ -32,8 +32,6 @@ const runFullBuild = async () => {
   console.log("📚 Cleaning previous build output ...");
   await cleanPreviousBuildOutput();
 
-  // todo: maybe remove es output
-
   console.log("📚 Building modules ...");
   await runSingleBuild();
 
@@ -77,10 +75,6 @@ const readPackageJson = async () => {
 const prepend = async (file, string) => {
   const data = await fs.readFile(file, 'utf8');
   await fs.writeFile(file, string + data, 'utf8');
-};
-
-const copyTypescript = async () => {
-  // todo: copy all .d.ts files
 };
 
 const createPackageJson = async (canPublish = true) => {
@@ -184,8 +178,9 @@ const compileFile = async (from, to, options) => {
   // todo: Run these three in parallel
   if (code) {
     await fs.writeFile(to, code);
-    if (await fs.exists(from + ".d.ts")) {
-      await fs.copy(from + ".d.ts", to + ".d.ts");
+    if (await fs.exists(withoutJsExtension(from) + ".d.ts")) {
+      console.log("Copied:", withoutJsExtension(to) + ".d.ts");
+      await fs.copy(withoutJsExtension(from) + ".d.ts", withoutJsExtension(to) + ".d.ts");
     }
   }
   if (map) {
@@ -195,6 +190,13 @@ const compileFile = async (from, to, options) => {
     await fs.writeFile(to + ".ast.json", JSON.stringify(ast, null, 2));
   }
 };
+
+const withoutJsExtension = str => {
+  if(str.endsWith(".js")) {
+    return str.substring(0, str.length - 3);
+  }
+  return str;
+}
 
 module.exports = {
   bootstrap,
