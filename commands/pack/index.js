@@ -14,8 +14,7 @@ const bootstrap = (app) => {
       console.log("📚 Packing your library ...")
       await runPack();
 
-      // todo: we can figure out the actual path & name                                                                  vvv
-      console.log("✨ Success! Your library has been packed into a .tgz file. You can now use 'npm i path/yo-your/tgz-file.tgz' in another project to install it.");
+      console.log("✨ Success! Your library has been packed into a .tgz file.");
 
       callback();
     });

@@ -80,7 +80,7 @@ const prepend = async (file, string) => {
 };
 
 const copyTypescript = async () => {
-
+  // todo: copy all .d.ts files
 };
 
 const createPackageJson = async (canPublish = true) => {
@@ -93,7 +93,7 @@ const createPackageJson = async (canPublish = true) => {
   };
   const distPath = path.join(paths.getDistFolder(), "./package.json");
 
-  await fs.writeFile(distPath, JSON.stringify(packageJson, null, 2), "utf8");
+  await fs.writeFile(distPath, JSON.stringify(newPackageJson, null, 2), "utf8");
   console.log("Created package.json");
 
   return newPackageJson;
