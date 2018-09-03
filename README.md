@@ -53,6 +53,7 @@ Read more [in the wiki](https://github.com/PatrickSachs/create-react-prototype/w
 * Compile ES5 to ES6
 * Transpile React to valid JavaScript
 * Unit Testing with Jest integrated
+* Linting with ESLint integrated
 * Example create-react-app project integrated
 
 ## What is create-react-prototype **not**?
