@@ -47,11 +47,6 @@ const install = async () => {
   await run('npm', ["install"], { stdio: "inherit", cwd: exampleDir });
 };
 
-/*const createExample = async () => {
-  const craPath = path.join(__dirname, "../../node_modules/.bin/create-react-app")
-  return await run(craPath, ["example"]);
-};*/
-
 const adjustPackageJson = async (options = {}) => {
   const packageJsonPath = path.join(paths.getProjectFolder(), "./package.json");
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath));

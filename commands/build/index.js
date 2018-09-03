@@ -22,8 +22,7 @@ const bootstrap = (app) => {
 };
 
 const cleanPreviousBuildOutput = async () => {
-  const cwd = process.cwd();
-  const dist = path.join(cwd, "./dist");
+  const dist = paths.getDistFolder();
   await fs.emptyDir(dist);
   console.log("Cleaned:", dist);
 }
@@ -102,6 +101,9 @@ const copyFile = async (file) => {
 };
 
 const shouldCompileFile = (name, stat) => {
+  if (!stat.isFile()) {
+    return false;
+  }
   if (!name.endsWith(".js")) {
     return false;
   }
@@ -112,7 +114,7 @@ const shouldCompileFile = (name, stat) => {
 };
 
 const shouldCompileDirectory = (name, stat) => {
-  return true;
+  return stat.isDirectory();
 };
 
 const options = () => {
@@ -155,9 +157,9 @@ const compileDirectory = async (from, to, options) => {
     const fullToItem = path.resolve(to, item);
     const stat = await fs.stat(fullFromItem);
     // todo: Make compatible with symlinks! (Symlinks can also be files)
-    if (stat.isDirectory() && shouldCompileDirectory(fullFromItem, stat)) {
+    if (shouldCompileDirectory(fullFromItem, stat)) {
       await compileDirectory(fullFromItem, fullToItem, options);
-    } else if (stat.isFile() && shouldCompileFile(fullFromItem, stat)) {
+    } else if (shouldCompileFile(fullFromItem, stat)) {
       await compileFile(fullFromItem, fullToItem, options);
     }
   }));
@@ -166,7 +168,7 @@ fs.pat
 const compileFile = async (from, to, options) => {
   options = {
     filename: from,
-    // todo: This option exists according to the documention, but throws an option of actually used.
+    // todo: This option exists according to the documention, but throws an error when actually used.
     /*caller: {
       name: "create-react-prototype"
     },*/
@@ -205,7 +207,9 @@ module.exports = {
   runFullBuild,
 
   compile,
+  shouldCompileFile,
   compileFile,
+  shouldCompileDirectory,
   compileDirectory,
   options
 };

@@ -28,21 +28,18 @@ const watch = () => {
     // todo: Batch changes, windows emits 2 change events for a single change x.x
     fs.watch(paths.getSourceFolder(), { recursive: true }, async (e, file) => {
       const fileFull = path.join(paths.getSourceFolder(), file);
-      console.log("Change detected:", e, file);
+      const distFileFull = path.join(paths.getDistFolder(), file);
       if (await fs.exists(fileFull)) {
         const stats = await fs.stat(fileFull);
         // todo: Support symlink in watch command
-        if (stats.isDirectory()) {
-          /*process.env.NODE_ENV = "development";
-          await build.compileDirectory(file, paths.getDistFolder(), build.options());*/
-        } else if (stats.isFile()) {
-          await build.compileFile(
-            fileFull,
-            path.join(paths.getDistFolder(), file),
-            build.options());
+        if (build.shouldCompileDirectory(fileFull, stats)) {
+          await build.compileDirectory(fileFull, distFileFull, build.options());
+        } else if (build.shouldCompileFile(fileFull, stats)) {
+          await build.compileFile(fileFull, distFileFull, build.options());
         }
       } else {
-
+        console.log("Deleted:", distFileFull);
+        await fs.remove(distFileFull);
       }
     }).once("close", res).once("error", rej);
   });
