@@ -151,7 +151,7 @@ const createLicense = async (args) => {
   let licenseText;
   try {
     licenseText = await getLicense(args.license);
-  } catch {
+  } catch(_) {
     console.log("Could not get license text for license '" + args.license + "'. Make sure to manually update your LICENSE file!");
     licenseText = (await fs.readFile(path.join(__dirname, "./LICENSE"))).toString();
   }
