@@ -1,10 +1,12 @@
 const paths = require("../../helper/paths");
-const run = require("../../helper/run");
-const flatten = require("../../helper/flatten");
 const prune = require("../../helper/prune");
 const path = require("path");
 const babel = require("@babel/core");
 const fs = require("fs-extra");
+const eslint = require("eslint");
+const eslintConfig = require.resolve("eslint-config-react-app");
+const formatEsLintMessages = require('react-dev-utils/eslintFormatter');
+const toSlugCase = require('to-slug-case');
 
 const bootstrap = (app) => {
   app
@@ -165,39 +167,71 @@ const compileDirectory = async (from, to, options) => {
 };
 fs.pat
 const compileFile = async (from, to, options) => {
-  options = {
-    filename: from,
-    // todo: This option exists according to the documention, but throws an error when actually used.
-    /*caller: {
-      name: "create-react-prototype"
-    },*/
-    ...options
-  };
-  await fs.ensureDir(path.dirname(to));
-  const { code, map, ast } = await babel.transformFileAsync(from, options);
-  console.log("Compiled:", from);
-  // todo: Run these three in parallel
-  if (code) {
-    await fs.writeFile(to, code);
-    if (await fs.exists(withoutJsExtension(from) + ".d.ts")) {
-      console.log("Copied:", withoutJsExtension(to) + ".d.ts");
-      await fs.copy(withoutJsExtension(from) + ".d.ts", withoutJsExtension(to) + ".d.ts");
+  const messages = [];
+  try {
+    await fs.ensureDir(path.dirname(to));
+    const text = (await fs.readFile(from)).toString();
+    const lintResult = await lint(text, from);
+    lintResult.results.forEach(r => {
+      r.filePath = from;
+    });
+    messages.push.apply(messages, lintResult.results);
+    // todo: Babel automatically console.logs all errors. We don't want that.
+    const { code, map, ast } = await babel.transformAsync(text, { filename: from, ...options });
+    // todo: Run these three in parallel
+    if (code) {
+      await fs.writeFile(to, code);
+      if (await fs.exists(withoutJsExtension(from) + ".d.ts")) {
+        await fs.copy(withoutJsExtension(from) + ".d.ts", withoutJsExtension(to) + ".d.ts");
+      }
     }
+    if (map) {
+      await fs.writeFile(to + ".map", map);
+    }
+    if (ast) {
+      await fs.writeFile(to + ".ast.json", JSON.stringify(ast, null, 2));
+    }
+  } catch (error) {
+    messages.push({
+      filePath: from,
+      messages: [{
+        column: (error.loc && error.loc.column) || 0,
+        line: (error.loc && error.loc.line) || 0,
+        message: error.message.replace(from + ": ", ""),
+        ruleId: toSlugCase(error.name),
+        nodeType: error.code || error.name,
+        severity: 2,
+        source: null
+      }],// todo
+      errorCount: 1,
+      warningCount: 0,
+      fixableErrorCount: 0,
+      fixableWarningCount: 0
+    })
   }
-  if (map) {
-    await fs.writeFile(to + ".map", map);
-  }
-  if (ast) {
-    await fs.writeFile(to + ".ast.json", JSON.stringify(ast, null, 2));
+  console.log("Compiled:", from);
+  const totalWarningsAndErrors = messages.reduce((acc, r) => acc + r.errorCount + r.warningCount, 0);
+  if (totalWarningsAndErrors) {
+    console.log(formatEsLintMessages(messages).split("\n").filter(l => l.trim()).join("\n"));
   }
 };
 
 const withoutJsExtension = str => {
-  if(str.endsWith(".js")) {
+  if (str.endsWith(".js")) {
     return str.substring(0, str.length - 3);
   }
   return str;
 }
+
+const linter = new eslint.CLIEngine({
+  useEslintrc: false,
+  ignore: false, // ?
+  baseConfig: {
+    extends: [eslintConfig]
+  }
+});
+
+const lint = (text, filename) => linter.executeOnText(text, filename, true);
 
 module.exports = {
   bootstrap,
