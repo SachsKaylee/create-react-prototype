@@ -95,6 +95,12 @@ const adjustPackageJson = async (options = {}) => {
 
   packageJson.devDependencies = packageJson.devDependencies || {};
   packageJson.devDependencies["create-react-prototype"] = myDependency;
+  packageJson.devDependencies["react"] = packageJson.devDependencies["react"] || "^16.2.0"
+  packageJson.devDependencies["react-dom"] = packageJson.devDependencies["react-dom"] || "^16.2.0"
+
+  packageJson.peerDependencies = packageJson.peerDependencies || {};
+  packageJson.peerDependencies["react"] = packageJson.peerDependencies["react"] || ">=16.2.0"
+  packageJson.peerDependencies["react-dom"] = packageJson.peerDependencies["react-dom"] || ">=16.2.0"
 
   await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
 };
