@@ -12,7 +12,7 @@ const bootstrap = (app) => {
     .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add this library as a depenendcy.")
     .action(async (args, callback) => {
       const dir = process.cwd();
-      
+
       // Set default options
       args.options.dependency = args.options.dependency || "npm";
 
@@ -119,11 +119,10 @@ const getFileArgs = async () => {
 const copyScaffolding = async () => {
   const args = await getFileArgs();
   await createLicense(args);
+  await createGitignore(args);
   await copyFile("./README.md", args);
   await copyFile("./CHANGELOG.md", args);
   await copyExample(args);
-
-  // todo: .gitignore
 };
 
 const copyExample = async (args) => {
@@ -148,13 +147,27 @@ const createLicense = async (args) => {
   await fs.writeFile(path.join(paths.getProjectFolder(), "./LICENSE"), licenseText);
 };
 
+const createGitignore = async (args) => {
+  const srcFilePath = path.join(paths.getProjectFolder(), ".gitignore");
+  if (!await fs.exists(srcFilePath)) {
+    console.log("Created:", "./.gitignore");
+    await fs.writeFile(srcFilePath, format(`# Default create-react-prototype .gitignore for [name]
+node_modules/
+dist/
+*.tgz
+`, args));
+  }
+}
+
 const copyFile = async (file, args) => {
-  const filePath = path.join(__dirname, file);
-  const contents = (await fs.readFile(filePath)).toString();
-  const formatted = format(contents, args);
   const srcFilePath = path.join(paths.getProjectFolder(), file);
-  console.log("Created:", file);
-  await fs.writeFile(srcFilePath, formatted);
+  if (!await fs.exists(srcFilePath)) {
+    const filePath = path.join(__dirname, file);
+    const contents = (await fs.readFile(filePath)).toString();
+    const formatted = format(contents, args);
+    console.log("Created:", file);
+    await fs.writeFile(srcFilePath, formatted);
+  }
 };
 
 const copyDirectory = async (dir, args) => {
