@@ -6,9 +6,9 @@ const jest = require("jest");
 const bootstrap = (app) => {
   app
     .command("test", "Runs the full test suite of your library.")
-    .option("-w --watch", "Watches the unit tests (git mode)")
-    .option("--watchAll", "Watches the unit tests (no git mode)")
-    .option("-d --debug", "Runs jest in debug mode")
+    .option("-W --watch", "Watches the unit tests (git mode)")
+    .option("-WA --watchAll", "Watches the unit tests (no git mode)")
+    .option("-D --debug", "Runs jest in debug mode")
     .action(async (args, callback) => {
       process.env.NODE_ENV = "test";
 

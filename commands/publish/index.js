@@ -4,7 +4,7 @@ const build = require("../build");
 
 const bootstrap = (app) => {
   app
-    .command("release", "Publishes your library to NPM! Things are about to get serious!")
+    .command("publish", "Publishes your library to NPM! Things are about to get serious!")
     .action(async (args, callback) => {
       process.env.NODE_ENV = "production";
 

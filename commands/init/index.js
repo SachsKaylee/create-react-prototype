@@ -10,7 +10,7 @@ const myPackageJson = require("../../package.json");
 const bootstrap = (app) => {
   app
     .command("init", "Creates a new react library")
-    .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add this library as a depenendcy.")
+    .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add create-react-prototype as a dependency.")
     .action(async (args, callback) => {
       // Set default options
       process.env.NODE_ENV = process.env.NODE_ENV || "development";
