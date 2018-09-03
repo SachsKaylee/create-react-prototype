@@ -10,6 +10,14 @@ Create, test & showcase React libraries with no build configuration. 📚
 
 create-react-prototype intends to fix these issues by providing **a zero configuration** out of the box solution for writing react libraries. There **won't be a single file related to your build process**, etc. in your library.
 
+## Features
+
+* Compile ES5 to ES6
+* Transpile React to valid JavaScript
+* Unit Testing with Jest integrated
+* Linting with ESLint integrated
+* Example create-react-app project integrated
+
 ## Quick Start
 
 Install `create-react-prototype` gobally:
@@ -47,14 +55,6 @@ $ npm run start
 ```
 
 Read more [in the wiki](https://github.com/PatrickSachs/create-react-prototype/wiki).
-
-## Features
-
-* Compile ES5 to ES6
-* Transpile React to valid JavaScript
-* Unit Testing with Jest integrated
-* Linting with ESLint integrated
-* Example create-react-app project integrated
 
 ## What is create-react-prototype **not**?
 
