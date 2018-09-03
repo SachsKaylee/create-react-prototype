@@ -114,29 +114,22 @@ const getFileArgs = async () => {
 
 const copyScaffolding = async () => {
   const args = await getFileArgs();
-  if (!await fs.exists(paths.getSourceFolder())) {
-    await fs.mkdir(paths.getSourceFolder());
-    await fs.writeFile(path.join(paths.getSourceFolder(), "./index.js"), format(`
-import * as React from "react";
-
-// This is a default index file created by create-react-prototype.
-// To get started follw these steps:
-//  $ npm run watch
-//  $ cd example
-//  $ npm run start
-// Now your browser will open, and any changes you make to this file (or others) will be reloaded in real time!
-
-// You may also want to take a look at /example/src/App.js to create a better playground for your library.
-
-export default () => (<span>Welcome to <em>[name]</em>!</span>);
-`, args));
-  }
   await createLicense(args);
   await createGitignore(args);
   await copyFile("./README.md", args);
   await copyFile("./CHANGELOG.md", args);
   await copyExample(args);
+  await copySrc(args);
 };
+
+const copySrc = async (args) => {
+  if (await fs.exists(paths.getSourceFolder())) {
+    console.log("Source directory already exists, not copying demo code.");
+  } else {
+    const sourceRelativePath = path.relative(paths.getProjectFolder(), paths.getSourceFolder());
+    await copyDirectory(sourceRelativePath, args);
+  }
+}
 
 const copyExample = async (args) => {
   if (await fs.exists(paths.getExampleFolder())) {
@@ -151,7 +144,7 @@ const createLicense = async (args) => {
   let licenseText;
   try {
     licenseText = await getLicense(args.license);
-  } catch(_) {
+  } catch (_) {
     console.log("Could not get license text for license '" + args.license + "'. Make sure to manually update your LICENSE file!");
     licenseText = (await fs.readFile(path.join(__dirname, "./LICENSE"))).toString();
   }
