@@ -30,6 +30,7 @@
     "cross-spawn": "^6.0.5",
     "fs-extra": "^7.0.0",
     "jest": "^23.5.0",
+    "node-watch": "^0.5.8",
     "vorpal": "^1.12.0"
   }
 }

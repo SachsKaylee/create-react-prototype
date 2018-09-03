@@ -156,7 +156,6 @@ const compileDirectory = async (from, to, options) => {
     const fullFromItem = path.resolve(from, item);
     const fullToItem = path.resolve(to, item);
     const stat = await fs.stat(fullFromItem);
-    // todo: Make compatible with symlinks! (Symlinks can also be files)
     if (shouldCompileDirectory(fullFromItem, stat)) {
       await compileDirectory(fullFromItem, fullToItem, options);
     } else if (shouldCompileFile(fullFromItem, stat)) {
