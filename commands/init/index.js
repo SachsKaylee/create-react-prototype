@@ -4,6 +4,7 @@ const run = require("../../helper/run");
 const paths = require("../../helper/paths");
 const format = require("../../helper/format-unicorn");
 const getLicense = require("./get-license");
+const build = require("../build");
 const myPackageJson = require("../../package.json");
 
 const bootstrap = (app) => {
@@ -11,9 +12,8 @@ const bootstrap = (app) => {
     .command("init", "Creates a new react library")
     .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add this library as a depenendcy.")
     .action(async (args, callback) => {
-      const dir = process.cwd();
-
       // Set default options
+      process.env.NODE_ENV = process.env.NODE_ENV || "development";
       args.options.dependency = args.options.dependency || "npm";
 
       console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
@@ -26,25 +26,26 @@ const bootstrap = (app) => {
       console.log("📚 We will now set up your project with some default files ...");
       await copyScaffolding();
 
-      console.log("📚 Installing ...");
-      await install();
+      console.log("📚 Installing library ...");
+      await run('npm', ["install"]);
 
-      console.log("✨ Created a new React library in '" + dir + "' -- Happy coding!")
+      console.log("📚 Creating initial build ...");
+      await build.runFullBuild();
+
+      console.log("📚 Installing example ...");
+      const exampleDir = path.join(paths.getProjectFolder(), "./example");
+      /*if (!await fs.exists(exampleDir)) {
+        await fs.mkdir(exampleDir);
+      }*/
+      await run('npm', ["install"], { stdio: "inherit", cwd: exampleDir });
+
+      console.log("✨ Created a new React library in '" + process.cwd() + "' -- Happy coding!")
       callback();
     });
 };
 
 const npmInit = async () => {
   return await run('npm', ["init"]);
-};
-
-const install = async () => {
-  await run('npm', ["install"]);
-  const exampleDir = path.join(paths.getProjectFolder(), "./example");
-  if (!await fs.exists(exampleDir)) {
-    await fs.mkdir(exampleDir);
-  }
-  await run('npm', ["install"], { stdio: "inherit", cwd: exampleDir });
 };
 
 const adjustPackageJson = async (options = {}) => {
@@ -113,6 +114,23 @@ const getFileArgs = async () => {
 
 const copyScaffolding = async () => {
   const args = await getFileArgs();
+  if (!await fs.exists(paths.getSourceFolder())) {
+    await fs.mkdir(paths.getSourceFolder());
+    await fs.writeFile(path.join(paths.getSourceFolder(), "./index.js"), format(`
+import * as React from "react";
+
+// This is a default index file created by create-react-prototype.
+// To get started follw these steps:
+//  $ npm run watch
+//  $ cd example
+//  $ npm run start
+// Now your browser will open, and any changes you make to this file (or others) will be reloaded in real time!
+
+// You may also want to take a look at /example/src/App.js to create a better playground for your library.
+
+export default () => (<span>Welcome to <em>[name]</em>!</span>);
+`, args));
+  }
   await createLicense(args);
   await createGitignore(args);
   await copyFile("./README.md", args);
