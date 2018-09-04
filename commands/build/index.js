@@ -51,9 +51,9 @@ const runSingleBuild = async () => {
 
   console.log("Copying README.md, CHANGELOG.md & LICENSE files to build output");
   await Promise.all([
-    copyFile("./README.md"),
-    copyFile("./CHANGELOG.md"),
-    copyFile("./LICENSE")
+    copyFile(path.join(paths.getProjectFolder(), "./README.md"), path.join(paths.getDistFolder(), "./README.md")),
+    copyFile(path.join(paths.getProjectFolder(), "./CHANGELOG.md"), path.join(paths.getDistFolder(), "./CHANGELOG.md")),
+    copyFile(path.join(paths.getProjectFolder(), "./LICENSE"), path.join(paths.getDistFolder(), "./LICENSE"))
   ]);
 };
 
@@ -94,14 +94,6 @@ const createPackageJson = async (canPublish = true) => {
   return newPackageJson;
 };
 
-const copyFile = async (file) => {
-  const cwd = process.cwd();
-  const distPath = path.join(paths.getDistFolder(), file);
-  const srcPath = path.join(cwd, file);
-  await fs.copy(srcPath, distPath);
-  console.log(`Copied ${file}`);
-};
-
 const shouldCompileFile = (name, stat) => {
   if (!stat.isFile()) {
     return false;
@@ -112,12 +104,37 @@ const shouldCompileFile = (name, stat) => {
   if (name.endsWith(".test.js")) {
     return false;
   }
+  const basename = path.basename(name);
+  if (basename[0] === ".") {
+    return false;
+  }
   return true;
 };
 
 const shouldCompileDirectory = (name, stat) => {
-  return stat.isDirectory();
+  if (!stat.isDirectory()) {
+    return false;
+  }
+  const basename = path.basename(name);
+  if (basename[0] === ".") {
+    return false;
+  }
+  return true;
 };
+
+const shouldCopyFile = (name, stat) => {
+  if (!stat.isFile()) {
+    return false;
+  }
+  if (name.endsWith(".js")) {
+    return false;
+  }
+  const basename = path.basename(name);
+  if (basename[0] === ".") {
+    return false;
+  }
+  return true;
+}
 
 const options = () => {
   const options = {
@@ -151,21 +168,27 @@ const compile = async () => {
   await compileDirectory(paths.getSourceFolder(), paths.getDistFolder(), options());
 };
 
+const compileEntry = async (from, to, options) => {
+  const stat = await fs.stat(from);
+  if (shouldCompileDirectory(from, stat)) {
+    await compileDirectory(from, to, options);
+  } else if (shouldCompileFile(from, stat)) {
+    await compileFile(from, to, options);
+  } else if (shouldCopyFile(from, stat)) {
+    await copyFile(from, to);
+  }
+}
+
 const compileDirectory = async (from, to, options) => {
   const dir = await fs.readdir(from);
   await fs.ensureDir(to);
   await Promise.all(dir.map(async item => {
     const fullFromItem = path.resolve(from, item);
     const fullToItem = path.resolve(to, item);
-    const stat = await fs.stat(fullFromItem);
-    if (shouldCompileDirectory(fullFromItem, stat)) {
-      await compileDirectory(fullFromItem, fullToItem, options);
-    } else if (shouldCompileFile(fullFromItem, stat)) {
-      await compileFile(fullFromItem, fullToItem, options);
-    }
+    await compileEntry(fullFromItem, fullToItem, options);
   }));
 };
-fs.pat
+
 const compileFile = async (from, to, options) => {
   const messages = [];
   try {
@@ -202,7 +225,7 @@ const compileFile = async (from, to, options) => {
         nodeType: error.code || error.name,
         severity: 2,
         source: null
-      }],// todo
+      }],
       errorCount: 1,
       warningCount: 0,
       fixableErrorCount: 0,
@@ -213,6 +236,13 @@ const compileFile = async (from, to, options) => {
   const totalWarningsAndErrors = messages.reduce((acc, r) => acc + r.errorCount + r.warningCount, 0);
   if (totalWarningsAndErrors) {
     console.log(formatEsLintMessages(messages).split("\n").filter(l => l.trim()).join("\n"));
+  }
+};
+
+const copyFile = async (from, to) => {
+  if (await fs.exists(from)) {
+    await fs.copy(from, to);
+    console.log("Copied:", from);
   }
 };
 
