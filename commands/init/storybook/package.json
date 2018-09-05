@@ -1,0 +1,15 @@
+{
+  "name": "[name]-storybook",
+  "version": "[version]",
+  "private": true,
+  "dependencies": {
+    "@storybook/react": "^3.4.10",
+    "babel-core": "^6.26.3",
+    "[name]": "file:../dist",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  },
+  "scripts": {
+    "start": "start-storybook -p 9001 -c config"
+  }
+}

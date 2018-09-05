@@ -11,10 +11,14 @@ const bootstrap = (app) => {
   app
     .command("init", "Creates a new react library")
     .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add create-react-prototype as a dependency.")
+    .option("-NE -noExample", "Opt out of creating an example project")
+    .option("-NS -noStorybook", "Opt out of creating a storybook project")
     .action(async (args, callback) => {
       // Set default options
       process.env.NODE_ENV = process.env.NODE_ENV || "development";
       args.options.dependency = args.options.dependency || "npm";
+      args.options.noExample = args.options.noExample || false;
+      args.options.noStorybook = args.options.noStorybook || false;
 
       console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
       console.log("📚 Tip: Fill it out properly, we'll read it and assume you entered correct data!");
@@ -24,7 +28,7 @@ const bootstrap = (app) => {
       await adjustPackageJson(args.options);
 
       console.log("📚 We will now set up your project with some default files ...");
-      await copyScaffolding();
+      await copyScaffolding(args.options);
 
       console.log("📚 Installing library ...");
       await run('npm', ["install"]);
@@ -32,12 +36,15 @@ const bootstrap = (app) => {
       console.log("📚 Creating initial build ...");
       await build.runFullBuild();
 
-      console.log("📚 Installing example ...");
-      const exampleDir = path.join(paths.getProjectFolder(), "./example");
-      /*if (!await fs.exists(exampleDir)) {
-        await fs.mkdir(exampleDir);
-      }*/
-      await run('npm', ["install"], { stdio: "inherit", cwd: exampleDir });
+      if (await fs.exists(paths.getExampleFolder())) {
+        console.log("📚 Installing example ...");
+        await run('npm', ["install"], { stdio: "inherit", cwd: paths.getExampleFolder() });
+      }
+
+      if (await fs.exists(paths.getStorybookFolder())) {
+        console.log("📚 Installing storybook ...");
+        await run('npm', ["install"], { stdio: "inherit", cwd: paths.getStorybookFolder() });
+      }
 
       console.log("✨ Created a new React library in '" + process.cwd() + "' -- Happy coding!")
       callback();
@@ -112,13 +119,14 @@ const getFileArgs = async () => {
   };
 };
 
-const copyScaffolding = async () => {
+const copyScaffolding = async ({ noExample, noStorybook } = {}) => {
   const args = await getFileArgs();
   await createLicense(args);
   await createGitignore(args);
   await copyFile("./README.md", args);
   await copyFile("./CHANGELOG.md", args);
-  await copyExample(args);
+  if (!noExample) await copyExample(args);
+  if (!noStorybook) await copyStorybook(args);
   await copySrc(args);
 };
 
@@ -137,6 +145,15 @@ const copyExample = async (args) => {
   } else {
     const exampleRelativePath = path.relative(paths.getProjectFolder(), paths.getExampleFolder());
     await copyDirectory(exampleRelativePath, args);
+  }
+}
+
+const copyStorybook = async (args) => {
+  if (await fs.exists(paths.getStorybookFolder())) {
+    console.log("Storybook directory already exists, not copying storybook.");
+  } else {
+    const storyRelativePath = path.relative(paths.getProjectFolder(), paths.getStorybookFolder());
+    await copyDirectory(storyRelativePath, args);
   }
 }
 

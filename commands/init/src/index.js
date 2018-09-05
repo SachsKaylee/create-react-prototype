@@ -12,4 +12,6 @@ import * as React from "react";
 export const getLibraryName = () => "[name]";
 export const getLibraryAuthor = () => "[fullname]";
 
-export default () => (<span>Welcome to <em>{getLibraryName()}</em>!</span>);
+export default ({ onClickName }) => (<span>
+  Welcome to <em onClick={onClickName} style={{ cursor: onClickName && "pointer" }}>{getLibraryName()}</em>!
+</span>);

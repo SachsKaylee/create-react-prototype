@@ -17,11 +17,16 @@ const getSourceFolder = () => {
 };
 
 const getDistFolder = () => {
-  const cwd = process.cwd();
-  return path.join(cwd, "./dist");
+  const project = getProjectFolder();
+  return path.join(project, "./dist");
 };
 
-getExampleFolder = () => {
+const getStorybookFolder = () => {
+  const project = getProjectFolder();
+  return path.join(project, "./storybook");
+};
+
+const getExampleFolder = () => {
   return path.join(getProjectFolder(), "./example");
 };
 
@@ -31,5 +36,6 @@ module.exports = {
   getProjectFolder,
   getSourceFolder,
   getDistFolder,
-  getExampleFolder
+  getExampleFolder,
+  getStorybookFolder
 };
