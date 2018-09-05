@@ -141,14 +141,14 @@ const options = () => {
     cwd: process.cwd(),
     code: true,
     plugins: prune([
-      require("@babel/plugin-proposal-object-rest-spread"),
-      require("@babel/plugin-transform-object-assign"),
-      [require("@babel/plugin-transform-runtime"), { helpers: true, useESModules: false }],
-      process.env.NODE_ENV === "production" && require("babel-plugin-transform-react-constant-elements")
+      require.resolve("@babel/plugin-proposal-object-rest-spread"),
+      require.resolve("@babel/plugin-transform-object-assign"),
+      [require.resolve("@babel/plugin-transform-runtime"), { helpers: true, useESModules: false }],
+      process.env.NODE_ENV === "production" && require.resolve("babel-plugin-transform-react-constant-elements")
     ]),
     presets: prune([
-      require("@babel/preset-react"),
-      [require("@babel/preset-env"), {
+      require.resolve("@babel/preset-react"),
+      [require.resolve("@babel/preset-env"), {
         targets: {
           ie: 11,
           edge: 14,
