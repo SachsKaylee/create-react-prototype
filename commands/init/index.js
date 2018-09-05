@@ -11,18 +11,20 @@ const bootstrap = (app) => {
   app
     .command("init", "Creates a new react library")
     .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add create-react-prototype as a dependency.")
-    .option("-NE -noExample", "Opt out of creating an example project")
-    .option("-NS -noStorybook", "Opt out of creating a storybook project")
+    .option("-Y --yes", "Skip npm init")
+    .option("-NE --noExample", "Opt out of creating an example project")
+    .option("-NS --noStorybook", "Opt out of creating a storybook project")
     .action(async (args, callback) => {
       // Set default options
       process.env.NODE_ENV = process.env.NODE_ENV || "development";
       args.options.dependency = args.options.dependency || "npm";
       args.options.noExample = args.options.noExample || false;
       args.options.noStorybook = args.options.noStorybook || false;
+      args.options.yes = args.options.yes || false;
 
       console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
       console.log("📚 Tip: Fill it out properly, we'll read it and assume you entered correct data!");
-      await npmInit();
+      await npmInit(args.options);
 
       console.log("📚 Nice! Now we'll shove some of our configuration into your package.json ...");
       await adjustPackageJson(args.options);
@@ -51,8 +53,8 @@ const bootstrap = (app) => {
     });
 };
 
-const npmInit = async () => {
-  return await run('npm', ["init"]);
+const npmInit = async ({ yes }) => {
+  return await run('npm', yes ? ["init", "--yes"] : ["init"]);
 };
 
 const adjustPackageJson = async (options = {}) => {
