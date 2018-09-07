@@ -21,7 +21,9 @@ create-react-prototype intends to fix these issues by providing **a zero configu
 
 ## Quick Start
 
-Install `create-react-prototype` gobally:
+If you are a visual learner you can find a video tutorial here: https://www.youtube.com/watch?v=XwdJaKLfFK4
+
+Install `create-react-prototype` globally:
 
 ```
 $ npm i -g create-react-prototype
@@ -44,7 +46,7 @@ $ npm run build
 $ npm run watch
 $ npm run test
 $ npm run pack
-$ npm run publish
+$ npm run release
 ```
 
 If you cd to `example` a create-react-app stands ready to be used, with your library already installed:
