@@ -1,12 +1,21 @@
 {
   "name": "create-react-prototype",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI similar to create-react-app, just for simple & small libraries. 📚",
   "main": "index.js",
   "repository": "https://github.com/PatrickSachs/create-react-prototype",
   "bin": {
     "create-react-prototype": "./index.js"
   },
+  "keywords": [
+    "react",
+    "cli",
+    "library",
+    "babel",
+    "boilerplate",
+    "storybook",
+    "compile"
+  ],
   "contributors": [
     {
       "name": "Patrick Sachs",
