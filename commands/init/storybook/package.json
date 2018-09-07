@@ -10,6 +10,7 @@
     "react-dom": "^16.2.0"
   },
   "scripts": {
-    "start": "start-storybook -p 9001 -c config"
+    "start": "start-storybook -p 9001 -c config",
+    "build": "build-storybook -c config -o dist"
   }
 }
