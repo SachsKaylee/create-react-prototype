@@ -16,6 +16,7 @@ create-react-prototype intends to fix these issues by providing **a zero configu
 * Transpile React to valid JavaScript
 * Unit Testing with Jest integrated
 * Linting with ESLint integrated
+* Storybook to showcase your components integrated
 * Example create-react-app project integrated
 
 ## Quick Start

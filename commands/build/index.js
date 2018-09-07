@@ -104,6 +104,12 @@ const shouldCompileFile = (name, stat) => {
   if (name.endsWith(".test.js")) {
     return false;
   }
+  // This is placeholder. I'd love see a future in which we just write .story.js files 
+  // and automatically have a storybook. No second project or anything else.
+  // If you think you are the one to make this happen - I need you! 😃
+  if (name.endsWith(".story.js")) {
+    return false;
+  }
   const basename = path.basename(name);
   if (basename[0] === ".") {
     return false;
