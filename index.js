@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const myPackageJson = require("./package.json");
 
 process.on('unhandledRejection', err => {
   console.error("❌ create-react-prototype encountered an error. You can likely find some details above this message. Below is mainly an internal stacktrace for us to debug this error.");
@@ -15,6 +16,13 @@ const packCommand = require("./commands/pack");
 
 const app = vorpal();
 
+const separator = myPackageJson.description.replace(/./g, "*");
+console.log(separator);
+console.log(myPackageJson.name + " v" + myPackageJson.version);
+console.log(myPackageJson.repository);
+console.log(myPackageJson.description);
+console.log(separator);
+
 initCommand.bootstrap(app);
 buildCommand.bootstrap(app);
 watchCommand.bootstrap(app);
@@ -23,6 +31,6 @@ publishCommand.bootstrap(app);
 packCommand.bootstrap(app);
 
 app
-  .delimiter("create-react-prototype$")
-  .show()
-  .parse(process.argv);
+  .delimiter(myPackageJson.name + "$")
+  .parse(process.argv)
+  .show();
