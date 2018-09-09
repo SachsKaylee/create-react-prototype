@@ -1,5 +1,5 @@
-const run = require("../../helper/run");
-const path = require("path");
+const paths = require("../../helper/paths");
+const pm = require("../../helper/pm");
 const build = require("../build");
 
 const bootstrap = (app) => {
@@ -11,8 +11,9 @@ const bootstrap = (app) => {
       console.log("📚 Creating a full build before publishing ...");
       await build.runFullBuild();
 
-      console.log("📚 Publishing your library ...")
-      await runPublish();
+      console.log("📚 Publishing your library ...");
+      console.log("Distribution Path:", paths.getDistFolder());
+      await pm.publish();
 
       console.log("✨ Success! Your library has published to NPM.");
 
@@ -20,14 +21,6 @@ const bootstrap = (app) => {
     });
 };
 
-const runPublish = async () => {
-  const cwd = process.cwd();
-  const dist = path.join(cwd, "./dist");
-  console.log("Distribution Path:", dist);
-  await run("npm", ["publish", dist]);
-};
-
 module.exports = {
-  bootstrap,
-  runPublish
+  bootstrap
 };

@@ -6,15 +6,13 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-const vorpal = require("vorpal");
+const app = require("vorpal")();
 const initCommand = require("./commands/init");
 const buildCommand = require("./commands/build");
 const watchCommand = require("./commands/watch");
 const testCommand = require("./commands/test");
 const publishCommand = require("./commands/publish");
 const packCommand = require("./commands/pack");
-
-const app = vorpal();
 
 const separator = myPackageJson.description.replace(/./g, "*");
 console.log(separator);
@@ -31,6 +29,6 @@ publishCommand.bootstrap(app);
 packCommand.bootstrap(app);
 
 app
-  .delimiter(myPackageJson.name + "$")
   .parse(process.argv)
+  .delimiter(myPackageJson.name + "$")
   .show();

@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
-const run = require("../../helper/run");
 const paths = require("../../helper/paths");
+const pm = require("../../helper/pm");
 const format = require("../../helper/format-unicorn");
 const getLicense = require("./get-license");
 const build = require("../build");
@@ -10,21 +10,23 @@ const myPackageJson = require("../../package.json");
 const bootstrap = (app) => {
   app
     .command("init", "Creates a new react library")
-    .option("-D --dependency <dependency>", "Possible values: npm/local/retain/none - Decides on how to add create-react-prototype as a dependency.")
-    .option("-Y --yes", "Skip npm init")
-    .option("-NE --noExample", "Opt out of creating an example project")
-    .option("-NS --noStorybook", "Opt out of creating a storybook project")
+    .option("-Y --yes", "Skip package.json creation questions.")
+    .option("-D --dependency <dependency>", "Decides on how to add create-react-prototype as a dependency. (Possible values: npm/local/retain/none)")
+    .option("-P --packageManager <packageManager>", "The package manager to use. (Possible values: npm/yarn)")
+    .option("--noExample", "Opt out of creating an example project.")
+    .option("--noStorybook", "Opt out of creating a storybook project.")
     .action(async (args, callback) => {
       // Set default options
       process.env.NODE_ENV = process.env.NODE_ENV || "development";
       args.options.dependency = args.options.dependency || "npm";
-      args.options.noExample = args.options.noExample || false;
-      args.options.noStorybook = args.options.noStorybook || false;
-      args.options.yes = args.options.yes || false;
+      args.options.packageManager = args.options.packageManager || "npm";
+      args.options.noExample = !!args.options.noExample;
+      args.options.noStorybook = !!args.options.noStorybook;
+      args.options.yes = !!args.options.yes;
 
       console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
       console.log("📚 Tip: Fill it out properly, we'll read it and assume you entered correct data!");
-      await npmInit(args.options);
+      await pm.init({ yes: args.options.yes }, args.options.packageManager);
 
       console.log("📚 Nice! Now we'll shove some of our configuration into your package.json ...");
       await adjustPackageJson(args.options);
@@ -33,28 +35,24 @@ const bootstrap = (app) => {
       await copyScaffolding(args.options);
 
       console.log("📚 Installing library ...");
-      await run('npm', ["install"]);
+      await pm.install({ dir: paths.getProjectFolder() });
 
       console.log("📚 Creating initial build ...");
       await build.runFullBuild();
 
       if (await fs.exists(paths.getExampleFolder())) {
         console.log("📚 Installing example ...");
-        await run('npm', ["install"], { stdio: "inherit", cwd: paths.getExampleFolder() });
+        await pm.install({ dir: paths.getExampleFolder() });
       }
 
       if (await fs.exists(paths.getStorybookFolder())) {
         console.log("📚 Installing storybook ...");
-        await run('npm', ["install"], { stdio: "inherit", cwd: paths.getStorybookFolder() });
+        await pm.install({ dir: paths.getStorybookFolder() });
       }
 
-      console.log("✨ Created a new React library in '" + process.cwd() + "' -- Happy coding!")
+      console.log("✨ Created a new React library in '" + paths.getProjectFolder() + "' -- Happy coding!")
       callback();
     });
-};
-
-const npmInit = async ({ yes }) => {
-  return await run('npm', yes ? ["init", "--yes"] : ["init"]);
 };
 
 const adjustPackageJson = async (options = {}) => {
@@ -69,7 +67,7 @@ const adjustPackageJson = async (options = {}) => {
     }
     case "local": {
       const filePath = path.relative(paths.getProjectFolder(), paths.getMyFolder());
-      myDependency = "file:" + filePath;
+      myDependency = await pm.linkString({ dir: filePath });
       break;
     }
     case "none": {
@@ -93,6 +91,7 @@ const adjustPackageJson = async (options = {}) => {
   packageJson.scripts["release"] = "create-react-prototype release";
   packageJson.scripts["pack"] = "create-react-prototype pack";
   packageJson.generator = "create-react-prototype";
+  packageJson.packageManager = options.packageManager;
   packageJson.main = "./src/index.js";
 
   packageJson.dependencies = packageJson.dependencies || {};
@@ -115,10 +114,19 @@ const getFileArgs = async () => {
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
   const year = new Date().getFullYear();
   const { description, name, version, license, author: fullname } = packageJson;
-
-  return {
-    description, name, version, year, license, fullname
+  const linkStr = await pm.linkString({ dir: path.relative(paths.getSourceFolder(), paths.getDistFolder()) });
+  // Create the basic options
+  const obj = {
+    description, name, version, year, license, fullname,
+    "link:dist": linkStr
   };
+  // Create a JSON escaped version of each string
+  return Object.keys(obj).reduce((acc, key) => {
+    // Yarn intializes some variables with undefined if --yes is used.
+    acc[key] = acc[key] !== undefined ? acc[key] : "";
+    acc[key + "/json"] = acc[key] !== undefined ? JSON.stringify(acc[key]).replace(/^"(.*)"$/, '$1') : "";
+    return acc;
+  }, obj);
 };
 
 const copyScaffolding = async ({ noExample, noStorybook } = {}) => {

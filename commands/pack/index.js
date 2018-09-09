@@ -1,5 +1,5 @@
-const run = require("../../helper/run");
-const path = require("path");
+const paths = require("../../helper/paths");
+const pm = require("../../helper/pm");
 const build = require("../build");
 
 const bootstrap = (app) => {
@@ -11,8 +11,9 @@ const bootstrap = (app) => {
       console.log("📚 Creating a full build before packing ...");
       await build.runFullBuild();
 
-      console.log("📚 Packing your library ...")
-      await runPack();
+      console.log("📚 Packing your library ...");
+      console.log("Distribution Path:", paths.getDistFolder());
+      await pm.pack();
 
       console.log("✨ Success! Your library has been packed into a .tgz file.");
 
@@ -20,14 +21,6 @@ const bootstrap = (app) => {
     });
 };
 
-const runPack = async () => {
-  const cwd = process.cwd();
-  const dist = path.join(cwd, "./dist");
-  console.log("Distribution Path:", dist);
-  await run("npm", ["pack", dist]);
-};
-
 module.exports = {
-  bootstrap,
-  runPack
+  bootstrap
 };

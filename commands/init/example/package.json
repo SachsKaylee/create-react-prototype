@@ -1,12 +1,12 @@
 {
-  "name": "[name]-example",
-  "version": "[version]",
+  "name": "[name/json]-example",
+  "version": "[version/json]",
   "private": true,
   "dependencies": {
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-scripts": "2.0.0-next.a671462c",
-    "[name]": "file:../dist"
+    "[name/json]": "[link:dist/json]"
   },
   "scripts": {
     "start": "react-scripts start",

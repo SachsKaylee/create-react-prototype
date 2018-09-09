@@ -1,11 +1,11 @@
 {
-  "name": "[name]-storybook",
-  "version": "[version]",
+  "name": "[name/json]-storybook",
+  "version": "[version/json]",
   "private": true,
   "dependencies": {
     "@storybook/react": "^3.4.10",
     "babel-core": "^6.26.3",
-    "[name]": "file:../dist",
+    "[name/json]": "[link:dist/json]",
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
   },
