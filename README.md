@@ -1,4 +1,4 @@
-# create-react-prototype
+# create-react-prototype ![npm](https://img.shields.io/npm/v/create-react-prototype.svg)
 
 Create, test & showcase React libraries with no build configuration. 📚
 

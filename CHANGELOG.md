@@ -13,7 +13,7 @@ Legend:
 
 Append GitHub @usernames to all bullet points.
 
-## Unleased - 1.1.0
+## Unreleased - 1.1.0
 
 * ✨ Added `--packageManager` to the `init` command, allowing the use of yarn as package manager @PatrickSachs.
 * 🔧 Changed Jest version to 22.4.3, which is required by the react-scripts for the example project, even when not using unit tests @PatrickSachs.
