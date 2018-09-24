@@ -4,17 +4,28 @@ const path = require("path");
 const fs = require("fs-extra");
 
 /**
- * Gets the package manager defined in the package.json of the user.
+ * Reads the package.json as a JSON object. Returns "null" if not found.
  */
-const get = async (defaultPm = "npm") => {
+const package = async () => {
   const jsonPath = path.join(paths.getProjectFolder(), "./package.json");
-  // The files does not yet exist during the create-react-prototype init command.
   if (!await fs.exists(jsonPath)) {
-    return defaultPm;
+    return null;
   }
   const packageJsonBuffer = await fs.readFile(jsonPath);
   const packageJson = JSON.parse(packageJsonBuffer.toString("utf8"));
-  return packageJson.packageManager || defaultPm;
+  return packageJson;
+}
+
+/**
+ * Gets the package manager defined in the package.json of the user.
+ */
+const get = async (defaultPm = "npm") => {
+  const pkg = await package();
+  // The files does not yet exist during the create-react-prototype init command.
+  if (!pkg || !pkg.packageManager) {
+    return defaultPm;
+  }
+  return pkg.packageManager;
 }
 
 /**
@@ -47,8 +58,16 @@ const init = async ({ yes = false } = {}, packageManager = get()) => {
 const publish = async ({ dir = paths.getDistFolder() } = {}, packageManager = get()) => {
   packageManager = await packageManager;
   switch (packageManager) {
-    case "npm": return await run('npm', ["publish", dir]);
-    case "yarn": return await run('yarn', ["publish", dir]);
+    case "npm": {
+      return await run('npm', ["publish", dir]);
+    };
+    case "yarn": {
+      const pkg = await package();
+      if (!pkg || !pkg.version) {
+        throw new Error("No version specified in package.json.");
+      }
+      return await run('yarn', ["publish", dir, "--new-version", pkg.version]);
+    };
     default: throw new Error("Unknown package manager " + packageManager);
   }
 };
@@ -61,10 +80,8 @@ const pack = async ({ dir = paths.getDistFolder(), outputDir = paths.getProjectF
   switch (packageManager) {
     case "npm": return await run("npm", ["pack", dir], { stdio: "inherit", cwd: outputDir });
     case "yarn": {
-      const jsonPath = path.join(paths.getProjectFolder(), "./package.json");
-      const packageJsonBuffer = await fs.readFile(jsonPath);
-      const packageJson = JSON.parse(packageJsonBuffer.toString("utf8"));
-      const filename = path.join(outputDir, packageJson.name + "-v" + packageJson.version + ".tgz");
+      const pkg = await package();
+      const filename = path.join(outputDir, pkg.name + "-v" + pkg.version + ".tgz");
       return await run("yarn", ["pack", "--filename", filename], { stdio: "inherit", cwd: dir });
     }
     default: throw new Error("Unknown package manager " + packageManager);
@@ -86,6 +103,7 @@ const linkString = async ({ dir = paths.getMyFolder() } = {}, packageManager = g
 
 module.exports = {
   get,
+  package,
 
   install,
   init,

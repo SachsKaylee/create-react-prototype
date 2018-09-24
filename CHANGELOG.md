@@ -13,6 +13,10 @@ Legend:
 
 Append GitHub @usernames to all bullet points.
 
+## 1.1.1
+
+* 🔧 Fix `publish` command when using yarn as package manager @PatrickSachs.
+
 ## 1.1.0
 
 * ✨ Added `--packageManager` to the `init` command, allowing the use of yarn as package manager @PatrickSachs.
