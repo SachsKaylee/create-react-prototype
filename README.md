@@ -18,6 +18,7 @@ create-react-prototype intends to fix these issues by providing **a zero configu
 * Linting with ESLint integrated
 * Storybook to showcase your components integrated
 * Example create-react-app project integrated
+* Use your favorite package manager - `npm` & `yarn` are supported
 
 ## Quick Start
 
