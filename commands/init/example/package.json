@@ -5,7 +5,7 @@
   "dependencies": {
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
-    "react-scripts": "2.0.0-next.a671462c",
+    "react-scripts": "^2.0.4",
     "[name/json]": "[link:dist/json]"
   },
   "scripts": {
