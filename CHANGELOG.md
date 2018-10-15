@@ -15,6 +15,7 @@ Append GitHub @usernames to all bullet points.
 
 ## Unreleased
 
+* 🔧 Update `react-scripts` to stable 2.0 in the `create-react-app` example project.
 * 🔧 Fix banner containing a JSON object pointing to the repo instead of a string.
 
 ## 1.1.1
