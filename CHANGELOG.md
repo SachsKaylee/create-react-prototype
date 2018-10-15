@@ -13,6 +13,10 @@ Legend:
 
 Append GitHub @usernames to all bullet points.
 
+## Unreleased
+
+* 🔧 Fix banner containing a JSON object pointing to the repo instead of a string.
+
 ## 1.1.1
 
 * 🔧 Fix `publish` command when using yarn as package manager @PatrickSachs.

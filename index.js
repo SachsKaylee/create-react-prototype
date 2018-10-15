@@ -17,7 +17,7 @@ const packCommand = require("./commands/pack");
 const separator = myPackageJson.description.replace(/./g, "*");
 console.log(separator);
 console.log(myPackageJson.name + " v" + myPackageJson.version);
-console.log(myPackageJson.repository);
+console.log(myPackageJson.repository.url ? myPackageJson.repository.url : myPackageJson.repository);
 console.log(myPackageJson.description);
 console.log(separator);
 
