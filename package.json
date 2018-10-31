@@ -1,6 +1,6 @@
 {
   "name": "create-react-prototype",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "description": "A CLI similar to create-react-app, just for simple & small libraries. 📚",
   "main": "index.js",
   "repository": "https://github.com/PatrickSachs/create-react-prototype",

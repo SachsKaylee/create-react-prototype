@@ -95,7 +95,11 @@ const adjustPackageJson = async (options = {}) => {
       break;
     }
     default: {
-      throw new Error(`Unknown dependency mode '${options.dependency}'.`);
+      if (options.dependency.startsWith("npm@")) {
+        myDependency = options.dependency.substring("npm@".length);
+      } else {
+        throw new Error(`Unknown dependency mode '${options.dependency}'.`);
+      }
     }
   }
 
