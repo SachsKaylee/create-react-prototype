@@ -13,6 +13,10 @@ Legend:
 
 Append GitHub @usernames to all bullet points.
 
+## 1.2.1
+
+* 🔧 Fixed all package versions to match the ones of react-scripts 2.1.0 @PatrickSachs.
+
 ## 1.2.0
 
 * ✨ Added new `--dependency tgz` option for the init command @PatrickSachs.
