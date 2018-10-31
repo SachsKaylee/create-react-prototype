@@ -3,9 +3,9 @@
   "version": "[version/json]",
   "private": true,
   "dependencies": {
-    "react": "^16.4.2",
-    "react-dom": "^16.4.2",
-    "react-scripts": "^2.0.4",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0",
+    "react-scripts": "2.1.0",
     "[name/json]": "[link:dist/json]"
   },
   "scripts": {
