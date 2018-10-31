@@ -1,6 +1,7 @@
 const path = require("path");
 const prune = require("../../helper/prune");
 const flatten = require("../../helper/flatten");
+const logger = require("../../helper/logger");
 const jest = require("jest");
 
 const bootstrap = (app) => {
@@ -8,14 +9,19 @@ const bootstrap = (app) => {
     .command("test", "Runs the full test suite of your library.")
     .option("-W --watch", "Watches the unit tests (git mode)")
     .option("-WA --watchAll", "Watches the unit tests (no git mode)")
-    .option("-D --debug", "Runs jest in debug mode")
+    .option("--debug", "Runs jest in debug mode")
     .action(async (args, callback) => {
       process.env.NODE_ENV = "test";
+      args.options.debug = !!args.options.debug;
+      logger.setDebug(args.options.debug);
 
-      console.log("📚 Running unit tests ...");
+      logger(logger.DEBUG, "NODE_ENV:", process.env.NODE_ENV);
+      logger(logger.DEBUG, "Options:", args.options);
+
+      logger(logger.INFO, "Running unit tests ...");
       await runTests(args.options);
 
-      console.log("✨ Success! Your library has been tested.");
+      logger(logger.SUCCESS, "Success! Your library has been tested.");
 
       callback();
     });
@@ -29,6 +35,7 @@ const runTests = async (args) => {
     args.watchAll && ["--watchAll"],
     args.debug && ["--debug"]
   ]));
+  logger(logger.DEBUG, "Running jest with:", cfg);
   await jest.run(cfg);
 };
 

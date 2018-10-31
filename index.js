@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 const myPackageJson = require("./package.json");
+const logger = require("./helper/logger");
 
 process.on('unhandledRejection', err => {
-  console.error("❌ create-react-prototype encountered an error. You can likely find some details above this message. Below is mainly an internal stacktrace for us to debug this error.");
+  logger(logger.ERROR, "create-react-prototype encountered an unhandled error - This should not happen.\nYou can likely find some details above this message. Below is mainly an internal stacktrace for us to debug this error.\n\n", err);
   throw err;
 });
 
@@ -18,6 +19,7 @@ const separator = myPackageJson.description.replace(/./g, "*");
 console.log(separator);
 console.log(myPackageJson.name + " v" + myPackageJson.version);
 console.log(myPackageJson.repository.url ? myPackageJson.repository.url : myPackageJson.repository);
+console.log(__dirname);
 console.log(myPackageJson.description);
 console.log(separator);
 

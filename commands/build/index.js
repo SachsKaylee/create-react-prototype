@@ -1,5 +1,6 @@
 const paths = require("../../helper/paths");
 const prune = require("../../helper/prune");
+const logger = require("../../helper/logger");
 const path = require("path");
 const babel = require("@babel/core");
 const fs = require("fs-extra");
@@ -11,13 +12,19 @@ const toSlugCase = require('to-slug-case');
 const bootstrap = (app) => {
   app
     .command("build", "Builds your library, ready for distribution.")
+    .option("--debug", "Activates debug output for this command")
     .action(async (args, callback) => {
       process.env.NODE_ENV = process.env.NODE_ENV || "production";
+      args.options.debug = !!args.options.debug;
+      logger.setDebug(args.options.debug);
 
-      console.log("📚 Building your library ...");
+      logger(logger.DEBUG, "NODE_ENV:", process.env.NODE_ENV);
+      logger(logger.DEBUG, "Options:", args.options);
+
+      logger(logger.INFO, "Building your library ...");
       await runFullBuild();
 
-      console.log("✨ Success! Your library has been compiled. You can find the output in the /dist directory.");
+      logger(logger.SUCCESS, "Success! Your library has been compiled. You can find the output in the /dist directory.");
 
       callback();
     });
@@ -26,30 +33,30 @@ const bootstrap = (app) => {
 const cleanPreviousBuildOutput = async () => {
   const dist = paths.getDistFolder();
   await fs.emptyDir(dist);
-  console.log("Cleaned:", dist);
+  logger(logger.TRACE, "Cleaned:", dist);
 }
 
 const runFullBuild = async () => {
-  console.log("📚 Cleaning previous build output ...");
+  logger(logger.INFO, "Cleaning previous build output ...");
   await cleanPreviousBuildOutput();
 
-  console.log("📚 Building modules ...");
+  logger(logger.INFO, "Building modules ...");
   await runSingleBuild();
 
-  console.log("📚 Copying files ...");
+  logger(logger.INFO, "Copying files ...");
   await createPackageJson();
 };
 
 const runSingleBuild = async () => {
-  console.log("Compiling source path:", paths.getSourceFolder());
+  logger(logger.TRACE, "Compiling source path:", paths.getSourceFolder());
   await compile();
 
   const packageJson = await readPackageJson();
-  console.log("Adding license information:", packageJson.name + " (v" + packageJson.version + "), " + packageJson.license + " License");
+  logger(logger.TRACE, "Adding license information:", packageJson.name + " (v" + packageJson.version + "), " + packageJson.license + " License");
   const indexJsPath = path.join(paths.getDistFolder(), "./index.js");
   await prependLicense(indexJsPath, packageJson);
 
-  console.log("Copying README.md, CHANGELOG.md & LICENSE files to build output");
+  logger(logger.TRACE, "Copying README.md, CHANGELOG.md & LICENSE files to build output");
   await Promise.all([
     copyFile(path.join(paths.getProjectFolder(), "./README.md"), path.join(paths.getDistFolder(), "./README.md")),
     copyFile(path.join(paths.getProjectFolder(), "./CHANGELOG.md"), path.join(paths.getDistFolder(), "./CHANGELOG.md")),
@@ -89,7 +96,7 @@ const createPackageJson = async (canPublish = true) => {
   const distPath = path.join(paths.getDistFolder(), "./package.json");
 
   await fs.writeFile(distPath, JSON.stringify(newPackageJson, null, 2), "utf8");
-  console.log("Created package.json");
+  logger(logger.TRACE, "Created package.json");
 
   return newPackageJson;
 };
@@ -144,7 +151,7 @@ const shouldCopyFile = (name, stat) => {
 
 const options = () => {
   const options = {
-    cwd: process.cwd(),
+    cwd: paths.getProjectFolder(),
     code: true,
     plugins: prune([
       require.resolve("@babel/plugin-proposal-object-rest-spread"),
@@ -238,9 +245,10 @@ const compileFile = async (from, to, options) => {
       fixableWarningCount: 0
     })
   }
-  console.log("Compiled:", from);
+  logger(logger.TRACE, "Compiled:", from);
   const totalWarningsAndErrors = messages.reduce((acc, r) => acc + r.errorCount + r.warningCount, 0);
   if (totalWarningsAndErrors) {
+    // Use console.log to prevent logger massing up the format.
     console.log(formatEsLintMessages(messages).split("\n").filter(l => l.trim()).join("\n"));
   }
 };
@@ -248,7 +256,7 @@ const compileFile = async (from, to, options) => {
 const copyFile = async (from, to) => {
   if (await fs.exists(from)) {
     await fs.copy(from, to);
-    console.log("Copied:", from);
+    logger(logger.TRACE, "Copied:", from);
   }
 };
 

@@ -75,14 +75,23 @@ const publish = async ({ dir = paths.getDistFolder() } = {}, packageManager = ge
 /**
  * Packs the given command into a .tgz file.
  */
-const pack = async ({ dir = paths.getDistFolder(), outputDir = paths.getProjectFolder() } = {}, packageManager = get()) => {
+const pack = async ({ 
+  dir = paths.getDistFolder(), 
+  outputDir = paths.getProjectFolder(), 
+  pkg = package() 
+} = {}, packageManager = get()) => {
   packageManager = await packageManager;
+  pkg = await pkg;
+
+  const filename = path.join(outputDir, pkg.name + "-" + pkg.version + ".tgz");
   switch (packageManager) {
-    case "npm": return await run("npm", ["pack", dir], { stdio: "inherit", cwd: outputDir });
+    case "npm": {
+      await run("npm", ["pack", dir], { stdio: "inherit", cwd: outputDir });
+      return filename;
+    }
     case "yarn": {
-      const pkg = await package();
-      const filename = path.join(outputDir, pkg.name + "-v" + pkg.version + ".tgz");
-      return await run("yarn", ["pack", "--filename", filename], { stdio: "inherit", cwd: dir });
+      await run("yarn", ["pack", "--filename", filename], { stdio: "inherit", cwd: dir });
+      return filename;
     }
     default: throw new Error("Unknown package manager " + packageManager);
   }

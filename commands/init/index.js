@@ -2,6 +2,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const paths = require("../../helper/paths");
 const pm = require("../../helper/pm");
+const logger = require("../../helper/logger");
 const format = require("../../helper/format-unicorn");
 const getLicense = require("./get-license");
 const build = require("../build");
@@ -13,6 +14,7 @@ const bootstrap = (app) => {
     .option("-Y --yes", "Skip package.json creation questions.")
     .option("-D --dependency <dependency>", "Decides on how to add create-react-prototype as a dependency. (Possible values: npm/local/retain/none)")
     .option("-P --packageManager <packageManager>", "The package manager to use. (Possible values: npm/yarn)")
+    .option("--debug", "Activates debug output for this command")
     .option("--noExample", "Opt out of creating an example project.")
     .option("--noStorybook", "Opt out of creating a storybook project.")
     .action(async (args, callback) => {
@@ -23,34 +25,42 @@ const bootstrap = (app) => {
       args.options.noExample = !!args.options.noExample;
       args.options.noStorybook = !!args.options.noStorybook;
       args.options.yes = !!args.options.yes;
+      args.options.debug = !!args.options.debug;
+      logger.setDebug(args.options.debug);
 
-      console.log("📚 Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
-      console.log("📚 Tip: Fill it out properly, we'll read it and assume you entered correct data!");
+      logger(logger.DEBUG, "NODE_ENV:", process.env.NODE_ENV);
+      logger(logger.DEBUG, "Options:", args.options);
+
+      logger(logger.INFO, "Welcome to create-react-prototype. Let's get started with setting up your package.json ...");
+      logger(logger.INFO, "Tip: Fill it out properly, we'll read it and assume you entered correct data!");
+      if (args.options.yes) {
+        logger(logger.WARNING, "The '--yes' flag has been set. This will skip the package.json questions, which has possible security implications.");
+      }
       await pm.init({ yes: args.options.yes }, args.options.packageManager);
 
-      console.log("📚 Nice! Now we'll shove some of our configuration into your package.json ...");
+      logger(logger.INFO, "Nice! Now we'll shove some of our configuration into your package.json ...");
       await adjustPackageJson(args.options);
 
-      console.log("📚 We will now set up your project with some default files ...");
+      logger(logger.INFO, "We will now set up your project with some default files ...");
       await copyScaffolding(args.options);
 
-      console.log("📚 Installing library ...");
+      logger(logger.INFO, "Installing library ...");
       await pm.install({ dir: paths.getProjectFolder() });
 
-      console.log("📚 Creating initial build ...");
+      logger(logger.INFO, "Creating initial build ...");
       await build.runFullBuild();
 
       if (await fs.exists(paths.getExampleFolder())) {
-        console.log("📚 Installing example ...");
+        logger(logger.INFO, "Installing example ...");
         await pm.install({ dir: paths.getExampleFolder() });
       }
 
       if (await fs.exists(paths.getStorybookFolder())) {
-        console.log("📚 Installing storybook ...");
+        logger(logger.INFO, "Installing storybook ...");
         await pm.install({ dir: paths.getStorybookFolder() });
       }
 
-      console.log("✨ Created a new React library in '" + paths.getProjectFolder() + "' -- Happy coding!")
+      logger(logger.SUCCESS, "Created a new React library in '" + paths.getProjectFolder() + "' -- Happy coding!")
       callback();
     });
 };
@@ -68,6 +78,12 @@ const adjustPackageJson = async (options = {}) => {
     case "local": {
       const filePath = path.relative(paths.getProjectFolder(), paths.getMyFolder());
       myDependency = await pm.linkString({ dir: filePath });
+      break;
+    }
+    case "tgz": {
+      const fullFilePath = await pm.pack({dir: paths.getMyFolder(), outputDir: paths.getMyFolder(), pkg: myPackageJson}, options.packageManager);
+      const filePath = path.relative(paths.getProjectFolder(), fullFilePath);
+      myDependency = filePath;
       break;
     }
     case "none": {
@@ -142,7 +158,7 @@ const copyScaffolding = async ({ noExample, noStorybook } = {}) => {
 
 const copySrc = async (args) => {
   if (await fs.exists(paths.getSourceFolder())) {
-    console.log("Source directory already exists, not copying demo code.");
+    logger(logger.WARNING, "Source directory already exists, not copying demo code.");
   } else {
     const sourceRelativePath = path.relative(paths.getProjectFolder(), paths.getSourceFolder());
     await copyDirectory(sourceRelativePath, args);
@@ -151,7 +167,7 @@ const copySrc = async (args) => {
 
 const copyExample = async (args) => {
   if (await fs.exists(paths.getExampleFolder())) {
-    console.log("Example directory already exists, not copying examples.");
+    logger(logger.WARNING, "Example directory already exists, not copying examples.");
   } else {
     const exampleRelativePath = path.relative(paths.getProjectFolder(), paths.getExampleFolder());
     await copyDirectory(exampleRelativePath, args);
@@ -160,7 +176,7 @@ const copyExample = async (args) => {
 
 const copyStorybook = async (args) => {
   if (await fs.exists(paths.getStorybookFolder())) {
-    console.log("Storybook directory already exists, not copying storybook.");
+    logger(logger.WARNING, "Storybook directory already exists, not copying storybook.");
   } else {
     const storyRelativePath = path.relative(paths.getProjectFolder(), paths.getStorybookFolder());
     await copyDirectory(storyRelativePath, args);
@@ -172,18 +188,18 @@ const createLicense = async (args) => {
   try {
     licenseText = await getLicense(args.license);
   } catch (_) {
-    console.log("Could not get license text for license '" + args.license + "'. Make sure to manually update your LICENSE file!");
+    logger(logger.WARNING, "Could not get license text for license '" + args.license + "'. Make sure to manually update your LICENSE file!");
     licenseText = (await fs.readFile(path.join(__dirname, "./LICENSE"))).toString();
   }
   licenseText = format(licenseText, args);
-  console.log("Created:", "./LICENSE");
+  logger(logger.TRACE, "Created:", "./LICENSE");
   await fs.writeFile(path.join(paths.getProjectFolder(), "./LICENSE"), licenseText);
 };
 
 const createGitignore = async (args) => {
   const srcFilePath = path.join(paths.getProjectFolder(), ".gitignore");
   if (!await fs.exists(srcFilePath)) {
-    console.log("Created:", "./.gitignore");
+    logger(logger.TRACE, "Created:", "./.gitignore");
     await fs.writeFile(srcFilePath, format(`# Default create-react-prototype .gitignore for [name]
 node_modules/
 dist/
@@ -198,7 +214,7 @@ const copyFile = async (file, args) => {
     const filePath = path.join(__dirname, file);
     const contents = (await fs.readFile(filePath)).toString();
     const formatted = format(contents, args);
-    console.log("Created:", file);
+    logger(logger.TRACE, "Created:", file);
     await fs.writeFile(srcFilePath, formatted);
   }
 };

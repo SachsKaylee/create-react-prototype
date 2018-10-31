@@ -11,14 +11,14 @@ describe("The [name] library", () => {
     const name = mod.getLibraryName();
 
     expect(typeof name).toBe("string");
-    expect(name.trim()).not.toStrictEqual("");
+    expect(name.trim()).not.toEqual("");
   });
 
   it("has the original author", () => {
     const originalAuthor = "[fullname]";
     const currentAuthor = mod.getLibraryAuthor();
 
-    expect(currentAuthor).toStrictEqual(originalAuthor);
+    expect(currentAuthor).toEqual(originalAuthor);
   });
 
 });
