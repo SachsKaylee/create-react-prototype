@@ -15,7 +15,12 @@ Append GitHub @usernames to all bullet points.
 
 ## Unreleased
 
-* 🔧 Fix banner containing a JSON object pointing to the repo instead of a string.
+* ✨ Added new `--dependency tgz` option for the init command @PatrickSachs.
+* ✨ Added new `--dependency npm@...` option for the init command, where `...` is any possible version of create-react-prototype @PatrickSachs.
+* ✨ Added a `--debug` option for all commands @PatrickSachs.
+* 🔧 Updated the example to use react-scripts 2 @PatrickSachs.
+* 🔧 Fixed banner containing a JSON object pointing to the repo instead of a string @PatrickSachs.
+* 🔧 (Probably!) Fixed potential build error when using yarn @PatrickSachs.
 
 ## 1.1.1
 
