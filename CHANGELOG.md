@@ -13,7 +13,7 @@ Legend:
 
 Append GitHub @usernames to all bullet points.
 
-## Unreleased
+## 1.2.0
 
 * ✨ Added new `--dependency tgz` option for the init command @PatrickSachs.
 * ✨ Added new `--dependency npm@...` option for the init command, where `...` is any possible version of create-react-prototype @PatrickSachs.
